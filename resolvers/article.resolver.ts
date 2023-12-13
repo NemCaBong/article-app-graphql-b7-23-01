@@ -8,13 +8,19 @@ export const resolversArticle = {
         sortKey,
         sortValue,
         currentPage,
-        limitItems
+        limitItems,
+        filterKey,
+        filterValue,
       } = args;
+
+      const find = {
+        deleted: false,
+      };
 
       // Sort
       const sort = {};
 
-      if(sortKey && sortValue) {
+      if (sortKey && sortValue) {
         sort[sortKey] = sortValue;
       }
       // End Sort
@@ -23,9 +29,16 @@ export const resolversArticle = {
       const skip = (currentPage - 1) * limitItems;
       // End Pagination
 
-      const articles = await Article.find({
-        deleted: false
-      }).sort(sort).limit(limitItems).skip(skip);
+      // Filter
+      if (filterKey && filterValue) {
+        find[filterKey] = filterValue;
+      }
+      // End Filter
+
+      const articles = await Article.find(find)
+        .sort(sort)
+        .limit(limitItems)
+        .skip(skip);
 
       return articles;
     },
@@ -33,7 +46,7 @@ export const resolversArticle = {
       const { id } = args;
       const article = await Article.findOne({
         _id: id,
-        deleted: false
+        deleted: false,
       });
 
       return article;
@@ -44,10 +57,10 @@ export const resolversArticle = {
       const categoryId = article.categoryId;
       const category = await Category.findOne({
         _id: categoryId,
-        deleted: false
+        deleted: false,
       });
       return category;
-    }
+    },
   },
   Mutation: {
     createArticle: async (_, args) => {
@@ -61,14 +74,17 @@ export const resolversArticle = {
     updateArticle: async (_, args) => {
       const { id, article } = args;
 
-      await Article.updateOne({
-        _id: id,
-        deleted: false
-      }, article);
+      await Article.updateOne(
+        {
+          _id: id,
+          deleted: false,
+        },
+        article
+      );
 
       const record = await Article.findOne({
         _id: id,
-        deleted: false
+        deleted: false,
       });
 
       return record;
@@ -76,15 +92,18 @@ export const resolversArticle = {
     deleteArticle: async (_, args) => {
       const { id } = args;
 
-      await Article.updateOne({
-        _id: id,
-        deleted: false
-      }, {
-        deleted: true,
-        deletedAt: new Date()
-      });
+      await Article.updateOne(
+        {
+          _id: id,
+          deleted: false,
+        },
+        {
+          deleted: true,
+          deletedAt: new Date(),
+        }
+      );
 
       return "Đã xóa!";
     },
-  }
+  },
 };
